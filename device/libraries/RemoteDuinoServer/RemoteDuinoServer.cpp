@@ -1,7 +1,7 @@
 #include "RemoteDuinoServer.h"
 
 extern "C" void __cxa_pure_virtual(void);
-void __cxa_pure_virtual(void) {} 
+void __cxa_pure_virtual(void) {}
 
 
 int get_free_memory() {
@@ -42,11 +42,24 @@ void BaseRemoteDuinoServer::sendCode(int protocol, uint32_t code, int code_lengt
         irsend.sendRC6(code, code_length);
         cout << "Sent RC6 ";
         Serial.println(code, HEX);
-    } else {
-    //else if (protocol == UNKNOWN /* i.e. raw */) {
+//    } else if(protocol == PANASONIC) {
+//        irsend.sendPanasonic(code, code_length);
+//        cout << "Sent Panasonic ";
+//        Serial.println(code, HEX);
+    } else if (protocol == 0 /* i.e. returning of Raw bytes */) {
         // Assume 38 KHz
-        //irsend.sendRaw(rawCodes, codeLen, 38);
-        Serial.println("Unkown protocol");
+		// For debugging:
+		for (int i = 0; i < raw_length; i++) {
+			if (i & 1) {
+				cout << "s" << rawCodes[i] << " "; // Space (0)
+			} else {
+				cout << "m" << rawCodes[i] << " "; // Mark  (1)
+			}
+		}
+		cout << endl;
+
+        irsend.sendRaw(rawCodes, raw_length, 38);
+        Serial.println("Sending unknown protocol");
     }
 }
 
@@ -56,7 +69,13 @@ void BaseRemoteDuinoServer::process_action(uint8_t action) {
         case SEND_CODE:
             cout << "code:" << code << endl;
             cout << "protocol:" << protocol << endl;
-            // output the value of each analog input pin
+            cout << "raw_length:" << raw_length << endl;
+            cout << "raw:";
+            for(int i = 0; i < raw_length; i++) {
+                cout << rawCodes[i] << ", ";
+            }
+            cout << endl;
+
             for(int i = 0; i < 3; i++) {
                 sendCode(protocol, code);
             }
@@ -73,6 +92,10 @@ void BaseRemoteDuinoServer::process_action(uint8_t action) {
 
 void BaseRemoteDuinoServer::process_request() {
     if(available()) {
+    	code = 0;
+    	protocol = 0;
+    	raw_length = 0;
+
         parse();
         // send a standard http response header
         cout << get_free_memory() << endl;
@@ -80,9 +103,9 @@ void BaseRemoteDuinoServer::process_request() {
         if(err) {
             cout << "Error parsing" << endl;
             return;
-        } 
+        }
 
-        cout << "Parse succesful" << endl;
+        cout << "Parse successful" << endl;
         cout << "action:" << (int)uri_action << endl;
         process_action(uri_action);
     }
@@ -91,7 +114,7 @@ void BaseRemoteDuinoServer::process_request() {
 void BaseRemoteDuinoServer::learn_code() {
     irrecv.enableIRIn(); // Re-enable receiver
     while(!irrecv.decode(&results)) {
-        delay(50);
+        delay(10);
     }
     store_code(&results);
     irrecv.resume(); // resume receiver
@@ -115,7 +138,7 @@ void BaseRemoteDuinoServer::store_code(decode_results *results) {
                 // Mark
                 rawCodes[i - 1] = results->rawbuf[i]*USECPERTICK - MARK_EXCESS;
                 cout << " m";
-            } 
+            }
             else {
                 // Space
                 rawCodes[i - 1] = results->rawbuf[i]*USECPERTICK + MARK_EXCESS;
@@ -126,18 +149,20 @@ void BaseRemoteDuinoServer::store_code(decode_results *results) {
         cout << "" << endl;
     } else {
         if (codeType == NEC) {
-            cout << "Received NEC: ";
+            cout << "Received NEC[1]: ";
             if (results->value == REPEAT) {
                 // Don't record a NEC repeat value as that's useless.
                 cout << "repeat; ignoring." << endl;
                 return;
             }
         } else if (codeType == SONY) {
-            cout << "Received SONY: ";
+            cout << "Received SONY[2]: ";
         } else if (codeType == RC5) {
-            cout << "Received RC5: ";
+            cout << "Received RC5[3]: ";
         } else if (codeType == RC6) {
-            cout << "Received RC6: ";
+            cout << "Received RC6[4]: ";
+        } else if (codeType == PANASONIC) {
+            cout << "Received RC6[10]: ";
         } else {
             cout << "Unexpected codeType ";
             Serial.print(codeType, DEC);

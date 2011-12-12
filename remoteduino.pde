@@ -26,8 +26,8 @@ using namespace std;
  * http://arcfn.com
  */
 
-#include <Ports.h>
-#include <RF12.h>
+/*#include <Ports.h>*/
+/*#include <RF12.h>*/
 #include <SPI.h>
 #include <Ethernet.h>
 #include <IRremote.h>
@@ -39,7 +39,7 @@ std::ihserialstream serial_in(Serial);
 // Enter a MAC address and IP address for your controller below.
 // The IP address will be dependent on your local network:
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
-byte ip[] = { 192,168,1, 182 };
+byte ip[] = { 192,168,0, 50 };
 
 EthernetRemoteDuinoServer RDServer(100, mac, ip);
 
@@ -49,7 +49,7 @@ void setup() {
     cout << "starting up..." << endl;
     cout << get_free_memory() << endl;
     RDServer.begin();
-    rf12_config();
+    /*rf12_config();*/
 }
 
 

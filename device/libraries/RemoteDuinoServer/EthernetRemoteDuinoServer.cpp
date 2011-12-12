@@ -89,18 +89,20 @@ void EthernetRemoteDuinoServer::report_code() {
         client.println("</p>");
     } else {
         if (codeType == NEC) {
-            client.println("<p>Received NEC: ");
+            client.println("<p>Received NEC[1]: ");
             if (codeValue == REPEAT) {
                 // Don't record a NEC repeat value as that's useless.
                 client.println("repeat; ignoring.</p>");
                 return;
             }
         } else if (codeType == SONY) {
-            client.println("<p>Received Sony: ");
+            client.println("<p>Received Sony[2]: ");
         } else if (codeType == RC5) {
-            client.println("<p>Received RC5: ");
+            client.println("<p>Received RC5[3]: ");
         } else if (codeType == RC6) {
-            client.println("<p>Received RC6: ");
+            client.println("<p>Received RC6[4]: ");
+        } else if (codeType == PANASONIC) {
+            client.println("<p>Received Panasonic[10]: ");
         } else {
             client.println("<p>Unexpected codeType ");
             client.print(codeType, DEC);

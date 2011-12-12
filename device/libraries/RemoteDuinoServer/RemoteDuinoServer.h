@@ -51,7 +51,6 @@ protected:
     // Storage for the recorded code
     int codeType; // The type of code
     unsigned long codeValue; // The code value if not raw
-    unsigned int rawCodes[RAWBUF]; // The durations if raw
     int codeLen; // The length of the code
     int toggle; // The RC5/6 toggle state
 
@@ -77,6 +76,12 @@ public:
     uint32_t code;
     int protocol;
     uint8_t uri_action;
+
+    // For Raw values
+    unsigned int rawCodes[RAWBUF]; // The durations if raw
+    unsigned int raw_length;
+//    unsigned int rawToSend[RAWBUF]; // The durations if raw
+//    int rawToSendLen; // The length of the code
 
 	virtual void begin();
     virtual void process_request();
